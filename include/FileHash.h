@@ -7,16 +7,18 @@
 
 #include <string>
 #include <memory>
-#include "BloomFilterHash.h"
+#include "mrshv2/Mrshv2.h"
 
 class FileHash {
 public:
-    FileHash(std::string dirPath, std::string filename, std::unique_ptr<BloomFilterHash> bfHash);
+    FileHash(std::string filePath, std::unique_ptr<BloomFilterHash> bfHash);
     double compare(const FileHash& otherHash);
 
-    const std::string dirPath = "";
-    const std::string filename = "";
+    const std::string filePath = "";
     const std::unique_ptr<BloomFilterHash> bfHash = nullptr;
+
+    static std::unique_ptr<FileHash> generateFileHash(std::string filePath, Mrshv2& hashGen);
+
 };
 
 
