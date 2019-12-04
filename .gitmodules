@@ -1,0 +1,3 @@
+[submodule "lib/mrshv2"]
+	path = lib/mrshv2
+	url = https://Biernhard@bitbucket.org/Biernhard/mrshv2.git
