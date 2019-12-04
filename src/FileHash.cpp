@@ -5,6 +5,7 @@
 #include <fstream>
 #include "../include/FileHash.h"
 
+
 FileHash::FileHash(std::string filePath, std::unique_ptr<BloomFilterHash> bfHash):
     filePath(std::move(filePath)), bfHash(std::move(bfHash)){};
 

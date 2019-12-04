@@ -7,7 +7,9 @@
 
 #include <string>
 #include <memory>
-#include "mrshv2/Mrshv2.h"
+//#include "mrshv2/Mrshv2.h"
+//#include "../lib/mrshv2/include/Mrshv2.h"
+#include "Mrshv2.h"
 
 class FileHash {
 public:
