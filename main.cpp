@@ -59,12 +59,14 @@ int main(int argc, char** argv) {
     for (uint64_t i=0; i < fileHashList.size(); i++) {
         //std::cout << fileHashList[i].get()->filePath << ": " << std::endl;
         for (uint64_t j=i+1; j < fileHashList.size(); j++) {
+            SPDLOG_TRACE("Start comparing file: {} with file: {} ...", fileHashList[i]->filePath, fileHashList[j]->filePath);
             auto sim = fileHashList[i].get()->compare(*fileHashList[j].get());
+            SPDLOG_TRACE("    finished. Similarity: {}%", sim);
             numComp++;
             if (sim >= simThreshold){
                 SPDLOG_INFO("{}%:", sim);
-                SPDLOG_INFO("   {}",fileHashList[i].get()->filePath);
-                SPDLOG_INFO("   {}",fileHashList[j].get()->filePath);
+                SPDLOG_INFO("   {}",fileHashList[i]->filePath);
+                SPDLOG_INFO("   {}",fileHashList[j]->filePath);
             }
 
         }
