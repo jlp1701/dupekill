@@ -14,11 +14,12 @@ double FileHash::compare(const FileHash& otherHash){
     return bfHash->compare(otherHash.bfHash.get());
 }
 
+
 std::unique_ptr <FileHash> FileHash::generateFileHash(std::string filePath, Mrshv2& hashGen) {
     // open file as stream
     std::ifstream fStream (filePath, std::ifstream::in | std::ifstream::binary);
     if (!fStream.good()){
-        std::cout << "Error with opening files!" << std::endl;
+        SPDLOG_WARN("Error with opening file: {}", filePath);
         return nullptr;
     }
     // compute hash

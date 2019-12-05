@@ -1,3 +1,6 @@
 [submodule "lib/mrshv2"]
 	path = lib/mrshv2
 	url = https://Biernhard@bitbucket.org/Biernhard/mrshv2.git
+[submodule "lib/spdlog"]
+	path = lib/spdlog
+	url = https://github.com/gabime/spdlog.git

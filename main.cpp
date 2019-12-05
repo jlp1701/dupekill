@@ -4,40 +4,56 @@
 #include <filesystem>
 #include <regex>
 #include <fstream>
-//#include "include/mrshv2/Mrshv2.h"
+
+#include "include/def.h"
 #include "include/FileHash.h"
-
-
-
+namespace spd = spdlog;
 
 int main(int argc, char** argv) {
+//    auto console_sink = std::make_shared<spd::sinks::stdout_color_sink_mt>();
+//    console_sink->set_level(spd::level::trace);
+//    auto file_sink = std::make_shared<spd::sinks::basic_file_sink_mt>("logs/multisink.txt", true);
+//    file_sink->set_level(spd::level::trace);
+//    spd::sinks_init_list sInitList({console_sink, file_sink});
+//    auto shLogger = std::make_shared<spd::logger>("main", sInitList);
+//    spd::set_default_logger(shLogger);
+
+    //spd::logger& logger = *shLogger;
+    //logger.set_level(spd::level::debug);
+    //spd::warn("this should appear in both console and file");
+    //spd::info("this message should not appear in the console, only in the file");
+    spdlog::set_level(spd::level::trace);  // needs to be set as well
+    SPDLOG_TRACE("Application starts ...");
+    SPDLOG_DEBUG("Application starts ...");
+    SPDLOG_INFO("Application starts ...");
+    SPDLOG_WARN("Application starts ...");
     if (argc != 3) {
-        std::cout << "Wrong number of arguments." << std::endl;
+        SPDLOG_ERROR("Wrong number of arguments: {}", argc);
         return -1;
     }
     double simThreshold = std::atoi(argv[1]);
     std::string dirPath(argv[2]);
-    std::cout << "Similarity threshold: " << simThreshold << std::endl;
-    std::cout << "Search path: " << dirPath << std::endl;
+    SPDLOG_INFO("Similarity threshold: {}", simThreshold);
+    SPDLOG_INFO("Search path: {}", dirPath);
     Mrshv2 mrsh;
     std::regex fileEndRegex(".*\\.bmp$");
     std::vector<std::unique_ptr<FileHash>> fileHashList;
-    std::cout << "Start hashing ..." << std::endl;
+    SPDLOG_INFO("Start hashing ...");
     for(auto& p: std::filesystem::recursive_directory_iterator(dirPath, std::filesystem::directory_options::skip_permission_denied)) {
         if (!p.is_regular_file() || !std::regex_match(p.path().c_str(), fileEndRegex)) {
             continue;
         }
-        std::cout << p.path() << '\n';
+        SPDLOG_DEBUG("{}", p.path().c_str());
         auto fHash = FileHash::generateFileHash(p.path(), mrsh);
         if (fHash) {
             fileHashList.push_back(std::move(fHash));
         } else {
-            std::cout << "Failed to generate Hash for file: " << p.path() << std::endl;
+            SPDLOG_WARN("Failed to generate Hash for file: {}", p.path().c_str());
         }
     }
-    std::cout << "Hashing finished. Hashed " << fileHashList.size() << " files." <<  std::endl;
+    SPDLOG_INFO("Hashing finished. Hashed {} files.", fileHashList.size());
 
-    std::cout << "Start all-against-all comparison:" << std::endl;
+    SPDLOG_INFO("Start all-against-all comparison:");
     // make all-against-all comparison
     uint64_t numComp = 0;
     for (uint64_t i=0; i < fileHashList.size(); i++) {
@@ -46,9 +62,9 @@ int main(int argc, char** argv) {
             auto sim = fileHashList[i].get()->compare(*fileHashList[j].get());
             numComp++;
             if (sim >= simThreshold){
-                std::cout << sim << "%:" << std::endl;
-                std::cout << "\t" << fileHashList[i].get()->filePath << std::endl;
-                std::cout << "\t" << fileHashList[j].get()->filePath << std::endl;
+                SPDLOG_INFO("{}%:", sim);
+                SPDLOG_INFO("   {}",fileHashList[i].get()->filePath);
+                SPDLOG_INFO("   {}",fileHashList[j].get()->filePath);
             }
 
         }
@@ -64,5 +80,6 @@ int main(int argc, char** argv) {
 
 
     std::cout << "Finished comparing. Did " << numComp << " comparations." << std::endl;
+    SPDLOG_WARN("Application ends.");
     return 0;
 }
