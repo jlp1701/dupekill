@@ -3,6 +3,7 @@
 #include <memory>
 #include <filesystem>
 #include <regex>
+#include <future>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -64,17 +65,33 @@ std::vector<FileComp> getComparisons(std::vector<FileHash*>& hList, double relSi
     return comparisons;
 }
 
+FileCompResult doFileCompare(const FileComp& fc) {
+    FileCompResult fcRes;
+    fcRes.similarity = fc.files.first->compare(*fc.files.second);
+    fcRes.comp = fc;
+    return fcRes;
+}
 
 // do the comparisons and store the results (= similarity) in a list
 std::vector<FileCompResult> compareHashes(const std::vector<FileComp>& fCompList){
     std::vector<FileCompResult> comResults = {};
+    std::vector<std::future<FileCompResult>> results;
 
     for (const auto& fc : fCompList) {
-        FileCompResult fcRes;
-        fcRes.comp = fc;
-        fcRes.similarity = fc.files.first->compare(*fc.files.second);
-        comResults.push_back(fcRes);
+        //FileCompResult fcRes;
+        //fcRes.comp = fc;
+        //fcRes.similarity = fc.files.first->compare(*fc.files.second);
+        //comResults.push_back(fcRes);
+        SPDLOG_DEBUG("Start comparing ...");
+        results.emplace_back(std::async(doFileCompare, fc));
     }
+    for (auto& res : results) {
+        SPDLOG_DEBUG("Waiting ...");
+        res.wait();
+        SPDLOG_DEBUG("\t... done!");
+        comResults.push_back(res.get());
+    }
+
     return comResults;
 }
 
