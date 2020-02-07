@@ -14,13 +14,14 @@
 
 class FileHash {
 public:
-    FileHash(std::string filePath, std::unique_ptr<BloomFilterHash> bfHash);
+    FileHash(std::string filePath, uint64_t fileSize, std::unique_ptr<BloomFilterHash> bfHash);
     double compare(const FileHash& otherHash);
 
     const std::string filePath = "";
+    const uint64_t fileSize = 0;
     const std::unique_ptr<BloomFilterHash> bfHash = nullptr;
 
-    static std::unique_ptr<FileHash> generateFileHash(std::string filePath, Mrshv2& hashGen);
+    static std::unique_ptr<FileHash> generateFileHash(std::string filePath, const Mrshv2& hashGen);
 
 };
 
