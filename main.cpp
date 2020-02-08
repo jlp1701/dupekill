@@ -3,7 +3,9 @@
 #include <memory>
 #include <filesystem>
 #include <regex>
-#include <future>
+#include <algorithm>
+#include <chrono>
+#include <omp.h>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -75,23 +77,13 @@ FileCompResult doFileCompare(const FileComp& fc) {
 // do the comparisons and store the results (= similarity) in a list
 std::vector<FileCompResult> compareHashes(const std::vector<FileComp>& fCompList){
     std::vector<FileCompResult> comResults = {};
-    std::vector<std::future<FileCompResult>> results;
 
-    for (const auto& fc : fCompList) {
-        //FileCompResult fcRes;
-        //fcRes.comp = fc;
-        //fcRes.similarity = fc.files.first->compare(*fc.files.second);
-        //comResults.push_back(fcRes);
-        SPDLOG_DEBUG("Start comparing ...");
-        results.emplace_back(std::async(doFileCompare, fc));
+    #pragma omp parallel for default(none) shared(comResults,fCompList)
+    for (uint64_t i = 0; i < fCompList.size(); i++) {
+        auto res = doFileCompare(fCompList[i]);
+        #pragma omp critical
+        comResults.push_back(res);
     }
-    for (auto& res : results) {
-        SPDLOG_DEBUG("Waiting ...");
-        res.wait();
-        SPDLOG_DEBUG("\t... done!");
-        comResults.push_back(res.get());
-    }
-
     return comResults;
 }
 
@@ -193,7 +185,12 @@ int main(int argc, char** argv) {
     auto comparisons = getComparisons(tHashList, relSizeDiff);
     SPDLOG_INFO("Number of comparisons: {}", comparisons.size());
 
+    auto start = std::chrono::high_resolution_clock::now();
     auto compResults = compareHashes(comparisons);
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    SPDLOG_INFO("Elapsed time for hashing: {}", elapsed.count());
+
     std::sort(compResults.begin(), compResults.end(), [](const auto& r1, const auto& r2) {
         return (r1.similarity > r2.similarity);
     });
